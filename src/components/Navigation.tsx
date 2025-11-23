@@ -18,21 +18,21 @@ export default function Navigation() {
               <div className="absolute inset-0 bg-gradient-to-l from-teal-400 via-blue-500 to-purple-600 rounded-xl opacity-15 animate-spin-slow group-hover:opacity-25 transition-opacity duration-500"></div>
               
               {/* Main Logo Container */}
-              <div className="relative flex items-center space-x-3 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 group-hover:from-blue-100 group-hover:via-purple-100 group-hover:to-teal-100 transition-all duration-300 transform group-hover:scale-105">
+              <div className="relative flex items-center space-x-2 px-3 py-1 rounded-lg bg-gradient-to-r from-blue-50 via-purple-50 to-teal-50 group-hover:from-blue-100 group-hover:via-purple-100 group-hover:to-teal-100 transition-all duration-300 transform group-hover:scale-105">
                 {/* Icon Container */}
                 <div className="relative">
-                  <div className="w-14 h-14 bg-gradient-to-br from-tumenye-blue via-blue-600 to-blue-800 rounded-xl flex items-center justify-center shadow-lg transform group-hover:rotate-3 transition-transform duration-300">
-                    <BookOpen className="h-8 w-8 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-tumenye-blue via-blue-600 to-blue-800 rounded-lg flex items-center justify-center shadow-lg transform group-hover:rotate-3 transition-transform duration-300">
+                    <BookOpen className="h-6 w-6 text-white" />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-bounce opacity-80"></div>
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-bounce opacity-80"></div>
                 </div>
                 
                 {/* Text Content */}
                 <div className="flex flex-col">
-                  <span className="text-2xl font-bold bg-gradient-to-r from-blue-700 via-purple-700 to-teal-700 bg-clip-text text-transparent group-hover:from-blue-800 group-hover:via-purple-800 group-hover:to-teal-800 transition-all duration-300">
+                  <span className="text-xl font-bold bg-gradient-to-r from-blue-700 via-purple-700 to-teal-700 bg-clip-text text-transparent group-hover:from-blue-800 group-hover:via-purple-800 group-hover:to-teal-800 transition-all duration-300">
                     Tumenye
                   </span>
-                  <div className="flex items-center space-x-1 text-sm">
+                  <div className="flex items-center space-x-1 text-xs">
                     <span className="text-blue-700 font-medium animate-fade-in">Learn</span>
                     <span className="text-purple-600 font-medium animate-fade-in-delay-1">•</span>
                     <span className="text-teal-700 font-medium animate-fade-in-delay-2">Grow</span>
@@ -79,7 +79,7 @@ export default function Navigation() {
                   
                   <button
                     onClick={() => signOut()}
-                    className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors"
+                    className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors hover:cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign Out</span>

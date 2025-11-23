@@ -33,21 +33,21 @@ export default function ProgressBar({
         />
       </div>
       
-      <div className="flex items-center justify-between text-sm text-gray-600">
+      <div className="flex items-center justify-between text-sm">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1">
             <CheckCircle className="h-4 w-4 text-green-500" />
-            <span>{completed} completed</span>
+            <span className="text-black font-bold">{completed} completed</span>
           </div>
           
           <div className="flex items-center space-x-1">
             <Circle className="h-4 w-4 text-gray-400" />
-            <span>{total - completed} remaining</span>
+            <span className="text-black font-bold">{total - completed} remaining</span>
           </div>
         </div>
         
         <div className="text-right">
-          <span>{completed} of {total} lessons</span>
+          <span className="text-black font-black text-base">{completed} of {total} lessons</span>
         </div>
       </div>
     </div>

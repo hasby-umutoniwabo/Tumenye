@@ -7,8 +7,11 @@ import Link from 'next/link';
 import { Award, BookOpen, CheckCircle, Clock, Target, TrendingUp } from 'lucide-react';
 import ProgressBar from '@/components/ProgressBar';
 import ModuleCard from '@/components/ModuleCard';
+import ProgressStats from '@/components/ProgressStats';
+import DailyGoalWidget from '@/components/DailyGoalWidget';
 import { modules } from '@/data/modules';
 import { useStreak } from '@/hooks/useStreak';
+import { useProgress } from '@/hooks/useProgress';
 
 interface UserStats {
   totalModules: number;
@@ -29,64 +32,70 @@ interface ModuleProgress {
 export default function Dashboard() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { streakData } = useStreak();
+  const { streakData, loading: streakLoading } = useStreak();
+  const { userProgress, loading: progressLoading, initializeModule } = useProgress();
   const [stats, setStats] = useState<UserStats>({
     totalModules: modules.length,
     completedModules: 0,
     totalLessons: modules.reduce((acc, module) => acc + module.lessons.length, 0),
     completedLessons: 0,
     overallProgress: 0,
-    streak: 0, // Will be updated with actual streak data
+    streak: 0,
   });
   const [moduleProgress, setModuleProgress] = useState<ModuleProgress[]>([]);
-  const [loading, setLoading] = useState(true);
+  const loading = streakLoading || progressLoading;
 
+  // Initialize modules when component mounts
+  useEffect(() => {
+    if (status === 'authenticated' && !progressLoading) {
+      // Initialize all modules
+      modules.forEach(module => {
+        initializeModule(module.id, module.lessons.length);
+      });
+    }
+  }, [status, progressLoading, initializeModule]);
+
+  // Update stats when progress data changes
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin');
       return;
     }
 
-    if (status === 'authenticated') {
-      // Initialize mock progress data
-      const mockProgress: ModuleProgress[] = modules.map(module => ({
-        moduleId: module.id,
-        completedLessons: Math.floor(Math.random() * (module.lessons.length + 1)),
-        totalLessons: module.lessons.length,
-        lastAccessed: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000), // Random date within last week
-      }));
+    if (status === 'authenticated' && !loading) {
+      // Calculate real progress from userProgress
+      const moduleProgressData: ModuleProgress[] = modules.map(module => {
+        const progress = userProgress[module.id];
+        return {
+          moduleId: module.id,
+          completedLessons: progress?.completedLessons || 0,
+          totalLessons: module.lessons.length,
+          lastAccessed: new Date(), // You could track this more accurately
+        };
+      });
 
-      setModuleProgress(mockProgress);
+      setModuleProgress(moduleProgressData);
 
       // Calculate stats
-      const totalCompleted = mockProgress.reduce((acc, progress) => acc + progress.completedLessons, 0);
-      const completedModulesCount = mockProgress.filter(progress => 
+      const totalCompleted = moduleProgressData.reduce((acc, progress) => acc + progress.completedLessons, 0);
+      const completedModulesCount = moduleProgressData.filter(progress => 
         progress.completedLessons === progress.totalLessons
       ).length;
 
-      setStats(prevStats => ({
-        ...prevStats,
+      const totalLessons = modules.reduce((acc, module) => acc + module.lessons.length, 0);
+
+      setStats({
+        totalModules: modules.length,
         completedModules: completedModulesCount,
+        totalLessons,
         completedLessons: totalCompleted,
-        overallProgress: (totalCompleted / prevStats.totalLessons) * 100,
-      }));
-
-      setLoading(false);
+        overallProgress: totalLessons > 0 ? (totalCompleted / totalLessons) * 100 : 0,
+        streak: streakData.currentStreak,
+      });
     }
-  }, [status, router]);
+  }, [status, router, userProgress, streakData, loading]);
 
-  // Separate effect for updating streak data to avoid circular dependency
-  useEffect(() => {
-    setStats(prevStats => {
-      if (prevStats.streak !== streakData.currentStreak) {
-        return {
-          ...prevStats,
-          streak: streakData.currentStreak,
-        };
-      }
-      return prevStats;
-    });
-  }, [streakData.currentStreak]);
+
 
   if (status === 'loading' || loading) {
     return (
@@ -122,82 +131,13 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Target className="h-6 w-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{Math.round(stats.overallProgress)}%</p>
-                <p className="text-gray-600 text-sm">Overall Progress</p>
-              </div>
-            </div>
+        {/* Progress Statistics and Daily Goals */}
+        <div className="grid lg:grid-cols-4 gap-6 mb-12">
+          <div className="lg:col-span-3">
+            <ProgressStats />
           </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{stats.completedLessons}</p>
-                <p className="text-gray-600 text-sm">Lessons Completed</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Award className="h-6 w-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{stats.completedModules}</p>
-                <p className="text-gray-600 text-sm">Modules Completed</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900">{stats.streak}</p>
-                <p className="text-gray-600 text-sm">Day Streak</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Progress Overview */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-12">
-          <div className="lg:col-span-2">
-            <ProgressBar
-              completed={stats.completedLessons}
-              total={stats.totalLessons}
-              title="Overall Learning Progress"
-            />
-          </div>
-          
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Level</h3>
-            <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-tumenye-blue to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-white">
-                  {Math.round(stats.overallProgress)}
-                </span>
-              </div>
-              <h4 className="text-xl font-semibold text-gray-900 mb-2">
-                {getProgressLevel(stats.overallProgress)}
-              </h4>
-              <p className="text-gray-600 text-sm">
-                Keep learning to reach the next level!
-              </p>
-            </div>
+          <div className="lg:col-span-1">
+            <DailyGoalWidget />
           </div>
         </div>
 

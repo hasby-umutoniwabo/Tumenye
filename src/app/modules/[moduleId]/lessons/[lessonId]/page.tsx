@@ -9,6 +9,7 @@ import { ArrowLeft, CheckCircle, X, Trophy } from 'lucide-react';
 import { modules, Module, LessonData, QuizQuestion } from '@/data/modules';
 import { useProgress } from '@/hooks/useProgress';
 import { useStreak } from '@/hooks/useStreak';
+import { useDailyGoals } from '@/hooks/useDailyGoals';
 
 export default function LessonPage() {
   const { data: session, status } = useSession();
@@ -28,8 +29,10 @@ export default function LessonPage() {
   const [correctAnswers, setCorrectAnswers] = useState<boolean[]>([]);
   const [loading, setLoading] = useState(true);
   
+  const userId = session?.user?.email || session?.user?.id;
   const { completeLesson, isLessonCompleted } = useProgress();
   const { updateStreak } = useStreak();
+  const { updateLessonProgress } = useDailyGoals();
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -93,14 +96,24 @@ export default function LessonPage() {
     
     // If score is 80% or higher, automatically mark as completed
     if (score >= 80) {
-      completeLesson(moduleId, lessonId, score);
-      updateStreak();
+      console.log('Auto-completing lesson with score:', score);
+      handleLessonCompletion(score);
+    }
+  };
+
+  const handleLessonCompletion = async (score?: number) => {
+    try {
+      await completeLesson(moduleId, lessonId, score);
+      await updateStreak();
+      await updateLessonProgress(); // Update daily goals
+    } catch (error) {
+      console.error('Failed to complete lesson:', error);
     }
   };
 
   const handleMarkAsCompleted = () => {
-    completeLesson(moduleId, lessonId, quizScore);
-    updateStreak();
+    console.log('Manually marking lesson as completed');
+    handleLessonCompletion(quizScore);
   };
 
   const handleRetakeQuiz = () => {

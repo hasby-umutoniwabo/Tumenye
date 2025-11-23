@@ -16,6 +16,7 @@ export default function ModulePage() {
   const moduleId = params.moduleId as string;
   const [module, setModule] = useState<Module | null>(null);
   const [loading, setLoading] = useState(true);
+  const userId = session?.user?.email || session?.user?.id;
   const { initializeModule, getModuleProgress, isLessonCompleted } = useProgress();
   const initializedRef = useRef<string | null>(null);
 

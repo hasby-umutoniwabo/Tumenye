@@ -20,25 +20,87 @@ interface UserProgress {
   [moduleId: string]: ModuleProgress;
 }
 
+interface DbProgress {
+  _id: string;
+  userId: string;
+  moduleId: string;
+  lessonId: string;
+  completed: boolean;
+  score?: number;
+  completedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export function useProgress() {
   const [userProgress, setUserProgress] = useState<UserProgress>({});
+  const [loading, setLoading] = useState(true);
 
-  // Load progress from localStorage on mount
-  useEffect(() => {
-    const savedProgress = localStorage.getItem('tumenye-progress');
-    if (savedProgress) {
-      try {
-        const parsedProgress = JSON.parse(savedProgress);
-        // Validate the progress data structure
-        if (parsedProgress && typeof parsedProgress === 'object') {
-          setUserProgress(parsedProgress);
-        }
-      } catch (error) {
-        console.warn('Invalid progress data, resetting:', error);
-        localStorage.removeItem('tumenye-progress');
+  // Load progress from API on mount
+  const fetchProgress = useCallback(async () => {
+    try {
+      const response = await fetch('/api/progress');
+      if (response.ok) {
+        const dbProgress: DbProgress[] = await response.json();
+
+        
+        // Transform API data to local format
+        const progressByModule: UserProgress = {};
+        
+        dbProgress.forEach(progress => {
+          const { moduleId, lessonId, completed, score, completedAt } = progress;
+          
+          if (!progressByModule[moduleId]) {
+            progressByModule[moduleId] = {
+              moduleId,
+              lessons: [],
+              completedLessons: 0,
+              totalLessons: 0, // Will be set by initializeModule
+            };
+          }
+          
+          const lessonProgress: LessonProgress = {
+            lessonId,
+            completed,
+            completedAt: completedAt || new Date().toISOString(),
+            quizScore: score,
+          };
+          
+          progressByModule[moduleId].lessons.push(lessonProgress);
+          if (completed) {
+            progressByModule[moduleId].completedLessons++;
+          }
+        });
+        
+
+        setUserProgress(progressByModule);
       }
+    } catch (error) {
+      console.error('Failed to fetch progress:', error);
+      // Fallback to localStorage
+      const savedProgress = localStorage.getItem('tumenye-progress');
+      if (savedProgress) {
+        try {
+          const parsedProgress = JSON.parse(savedProgress);
+          if (parsedProgress && typeof parsedProgress === 'object') {
+
+            setUserProgress(parsedProgress);
+          }
+        } catch (error) {
+          console.warn('Invalid progress data, resetting:', error);
+          localStorage.removeItem('tumenye-progress');
+        }
+      } else {
+
+      }
+    } finally {
+      setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    fetchProgress();
+  }, [fetchProgress]);
 
   // Save progress to localStorage whenever it changes
   useEffect(() => {
@@ -54,23 +116,27 @@ export function useProgress() {
 
   const initializeModule = useCallback((moduleId: string, totalLessons: number) => {
     setUserProgress(prev => {
+
+      
       // Don't overwrite existing module data
       if (prev[moduleId]) {
         // Only update if totalLessons is actually different
         if (prev[moduleId].totalLessons === totalLessons) {
           return prev; // No change needed
         }
-        return {
+        const updated = {
           ...prev,
           [moduleId]: {
             ...prev[moduleId],
             totalLessons
           }
         };
+
+        return updated;
       }
       
       // Only create new module if it doesn't exist
-      return {
+      const newProgress = {
         ...prev,
         [moduleId]: {
           moduleId,
@@ -79,43 +145,109 @@ export function useProgress() {
           totalLessons
         }
       };
+
+      return newProgress;
     });
   }, []);
 
-  const completeLesson = useCallback((moduleId: string, lessonId: string, quizScore?: number) => {
-    setUserProgress(prev => {
-      const module = prev[moduleId];
-      if (!module) return prev;
+  const completeLesson = useCallback(async (moduleId: string, lessonId: string, quizScore?: number) => {
+    try {
+      // Update via API
+      const response = await fetch('/api/progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          moduleId,
+          lessonId,
+          completed: true,
+          score: quizScore,
+        }),
+      });
 
-      const existingLessonIndex = module.lessons.findIndex(l => l.lessonId === lessonId);
-      const lessonProgress: LessonProgress = {
-        lessonId,
-        completed: true,
-        completedAt: new Date().toISOString(),
-        quizScore
-      };
+      if (response.ok) {
+        // Update local state
+        setUserProgress(prev => {
+          const module = prev[moduleId];
+          if (!module) return prev;
 
-      let updatedLessons;
-      if (existingLessonIndex >= 0) {
-        // Update existing lesson
-        updatedLessons = [...module.lessons];
-        updatedLessons[existingLessonIndex] = lessonProgress;
+          const existingLessonIndex = module.lessons.findIndex(l => l.lessonId === lessonId);
+          const lessonProgress: LessonProgress = {
+            lessonId,
+            completed: true,
+            completedAt: new Date().toISOString(),
+            quizScore
+          };
+
+          let updatedLessons;
+          if (existingLessonIndex >= 0) {
+            // Update existing lesson
+            updatedLessons = [...module.lessons];
+            updatedLessons[existingLessonIndex] = lessonProgress;
+          } else {
+            // Add new lesson
+            updatedLessons = [...module.lessons, lessonProgress];
+          }
+
+          const completedCount = updatedLessons.filter(l => l.completed).length;
+
+          const updatedProgress = {
+            ...prev,
+            [moduleId]: {
+              ...module,
+              lessons: updatedLessons,
+              completedLessons: completedCount
+            }
+          };
+
+          // Also save to localStorage as backup
+          localStorage.setItem('tumenye-progress', JSON.stringify(updatedProgress));
+          
+          return updatedProgress;
+        });
       } else {
-        // Add new lesson
-        updatedLessons = [...module.lessons, lessonProgress];
+        throw new Error('Failed to update progress');
       }
+    } catch (error) {
+      console.error('Failed to complete lesson:', error);
+      
+      // Fallback to localStorage only
+      setUserProgress(prev => {
+        const module = prev[moduleId];
+        if (!module) return prev;
 
-      const completedCount = updatedLessons.filter(l => l.completed).length;
+        const existingLessonIndex = module.lessons.findIndex(l => l.lessonId === lessonId);
+        const lessonProgress: LessonProgress = {
+          lessonId,
+          completed: true,
+          completedAt: new Date().toISOString(),
+          quizScore
+        };
 
-      return {
-        ...prev,
-        [moduleId]: {
-          ...module,
-          lessons: updatedLessons,
-          completedLessons: completedCount
+        let updatedLessons;
+        if (existingLessonIndex >= 0) {
+          updatedLessons = [...module.lessons];
+          updatedLessons[existingLessonIndex] = lessonProgress;
+        } else {
+          updatedLessons = [...module.lessons, lessonProgress];
         }
-      };
-    });
+
+        const completedCount = updatedLessons.filter(l => l.completed).length;
+
+        const updatedProgress = {
+          ...prev,
+          [moduleId]: {
+            ...module,
+            lessons: updatedLessons,
+            completedLessons: completedCount
+          }
+        };
+
+        localStorage.setItem('tumenye-progress', JSON.stringify(updatedProgress));
+        return updatedProgress;
+      });
+    }
   }, []);
 
   const isLessonCompleted = useCallback((moduleId: string, lessonId: string): boolean => {
@@ -156,12 +288,14 @@ export function useProgress() {
 
   return {
     userProgress,
+    loading,
     initializeModule,
     completeLesson,
     isLessonCompleted,
     getModuleProgress,
     getLessonScore,
     getOverallProgress,
-    resetProgress
+    resetProgress,
+    refetchProgress: fetchProgress,
   };
 }

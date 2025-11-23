@@ -12,9 +12,9 @@ import { Flame, Trophy } from 'lucide-react';
 export default function ModulesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const { userProgress, initializeModule, getModuleProgress, getOverallProgress } = useProgress();
-  const { streakData } = useStreak();
+  const { userProgress, loading: progressLoading, initializeModule, getModuleProgress, getOverallProgress, completeLesson } = useProgress();
+  const { streakData, loading: streakLoading, updateStreak } = useStreak();
+  const loading = progressLoading || streakLoading;
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -22,14 +22,13 @@ export default function ModulesPage() {
       return;
     }
 
-    if (status === 'authenticated') {
+    if (status === 'authenticated' && !progressLoading) {
       // Initialize modules in progress tracking
       modules.forEach(module => {
         initializeModule(module.id, module.lessons.length);
       });
-      setLoading(false);
     }
-  }, [status, router, initializeModule]);
+  }, [status, router, initializeModule, progressLoading]);
 
   const handleModuleClick = (moduleId: string) => {
     router.push(`/modules/${moduleId}`);
@@ -86,8 +85,8 @@ export default function ModulesPage() {
               <div>
                 <h3 className="text-2xl font-bold">{getOverallProgress()}% Complete</h3>
                 <p className="text-green-100">Your overall learning progress</p>
-                {streakData.totalDays > 0 && (
-                  <p className="text-sm text-green-200 mt-1">Active for {streakData.totalDays} days</p>
+                {streakData.totalActiveDays > 0 && (
+                  <p className="text-sm text-green-200 mt-1">Active for {streakData.totalActiveDays} days</p>
                 )}
               </div>
             </div>
@@ -116,14 +115,17 @@ export default function ModulesPage() {
 
         {/* Progress Summary */}
         <div className="mt-16 bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Learning Progress</h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900">Your Learning Progress</h2>
+
+          </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {modules.map((module) => {
               const progress = getModuleProgress(module.id);
-              const completionPercentage = progress && progress.totalLessons > 0 
-                ? (progress.completedLessons / progress.totalLessons) * 100 
-                : 0;
+              const completedLessons = progress?.completedLessons || 0;
+              const totalLessons = progress?.totalLessons || module.lessons.length;
+              const completionPercentage = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
 
               return (
                 <div key={module.id} className="text-center">
@@ -138,7 +140,7 @@ export default function ModulesPage() {
                       <path
                         d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
                         fill="none"
-                        stroke="#3b82f6"
+                        stroke={completionPercentage > 0 ? "#3b82f6" : "#e5e7eb"}
                         strokeWidth="3"
                         strokeDasharray={`${completionPercentage}, 100`}
                       />
@@ -151,18 +153,55 @@ export default function ModulesPage() {
                   </div>
                   <h3 className="font-medium text-gray-900 text-sm">{module.title}</h3>
                   <p className="text-xs text-gray-500 mt-1">
-                    {progress?.completedLessons || 0} of {progress?.totalLessons || module.lessons.length} lessons
+                    {completedLessons} of {totalLessons} lessons
                   </p>
                 </div>
               );
             })}
           </div>
 
-          <div className="mt-8 text-center">
-            <div className="inline-flex items-center px-4 py-2 bg-tumenye-light-blue rounded-full">
-              <span className="text-tumenye-blue font-medium">
-                Overall Progress: {getOverallProgress()}%
-              </span>
+          {/* Overall Progress Summary */}
+          <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+            <div className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
+              <div className="text-center md:text-left">
+                <h3 className="text-lg font-bold text-gray-900 mb-1">Overall Learning Progress</h3>
+                <p className="text-gray-600">
+                  {modules.reduce((total, module) => {
+                    const progress = getModuleProgress(module.id);
+                    return total + (progress?.completedLessons || 0);
+                  }, 0)} lessons completed across all modules
+                </p>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <div className="relative w-20 h-20">
+                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 36 36">
+                    <path
+                      d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+                      fill="none"
+                      stroke="#e5e7eb"
+                      strokeWidth="3"
+                    />
+                    <path
+                      d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+                      fill="none"
+                      stroke="#10b981"
+                      strokeWidth="3"
+                      strokeDasharray={`${getOverallProgress()}, 100`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-xl font-bold text-green-600">
+                      {getOverallProgress()}%
+                    </span>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-green-600">{getOverallProgress()}%</div>
+                  <div className="text-sm text-gray-600 font-medium">Complete</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
