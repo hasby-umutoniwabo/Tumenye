@@ -9,6 +9,7 @@ import ProgressBar from '@/components/ProgressBar';
 import ModuleCard from '@/components/ModuleCard';
 import ProgressStats from '@/components/ProgressStats';
 import DailyGoalWidget from '@/components/DailyGoalWidget';
+import GoalSettings from '@/components/GoalSettings';
 import { modules } from '@/data/modules';
 import { useStreak } from '@/hooks/useStreak';
 import { useProgress } from '@/hooks/useProgress';
@@ -132,13 +133,18 @@ export default function Dashboard() {
         </div>
 
         {/* Progress Statistics and Daily Goals */}
-        <div className="grid lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid lg:grid-cols-4 gap-6 mb-8">
           <div className="lg:col-span-3">
             <ProgressStats />
           </div>
           <div className="lg:col-span-1">
             <DailyGoalWidget />
           </div>
+        </div>
+
+        {/* Personal Goal Settings */}
+        <div className="mb-12">
+          <GoalSettings />
         </div>
 
         {/* Module Progress */}

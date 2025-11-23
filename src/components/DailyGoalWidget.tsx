@@ -9,7 +9,7 @@ interface DailyGoalWidgetProps {
 }
 
 export default function DailyGoalWidget({ className = '' }: DailyGoalWidgetProps) {
-  const { getTodayGoal, goalStats, setDailyTarget, defaultDailyTarget, getWeeklyGoals } = useDailyGoals();
+  const { getTodayGoal, goalStats, setDailyTarget, defaultDailyTarget, getWeeklyGoals, loading } = useDailyGoals();
   const [isSettingTarget, setIsSettingTarget] = useState(false);
   const [tempTarget, setTempTarget] = useState(defaultDailyTarget);
 
@@ -17,10 +17,22 @@ export default function DailyGoalWidget({ className = '' }: DailyGoalWidgetProps
   const weeklyGoals = getWeeklyGoals();
   const progressPercentage = todayGoal.target > 0 ? (todayGoal.completed / todayGoal.target) * 100 : 0;
 
-  const handleSetTarget = () => {
-    setDailyTarget(tempTarget);
+  const handleSetTarget = async () => {
+    await setDailyTarget(tempTarget);
     setIsSettingTarget(false);
   };
+
+  if (loading) {
+    return (
+      <div className={`bg-white rounded-xl p-6 shadow-sm border border-gray-200 ${className}`}>
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-200 rounded w-24 mb-4"></div>
+          <div className="h-16 bg-gray-200 rounded-full w-16 mx-auto mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}>
