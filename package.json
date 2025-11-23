@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "next lint",
+    "type-check": "tsc --noEmit",
+    "deploy-check": "npm run lint && npm run type-check && npm run build",
+    "prepare-deploy": "./deploy-prepare.sh"
   },
   "dependencies": {
     "@next-auth/mongodb-adapter": "^1.1.3",
