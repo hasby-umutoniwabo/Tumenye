@@ -46,9 +46,9 @@
 ```
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/tumenye
 NEXTAUTH_URL=https://your-app-name.vercel.app
-NEXTAUTH_SECRET=5WnBPF+/1HJiC7L1PRGfPXVLxknUo5/JBut4cndoB38=
+NEXTAUTH_SECRET=your-32-character-secret-generate-new-one
 ADMIN_EMAIL=admin@tumenye.rw
-ADMIN_PASSWORD=lMmCNMMyAEOar0JMi1mqRA==
+ADMIN_PASSWORD=your-secure-admin-password
 ```
 
 ---
