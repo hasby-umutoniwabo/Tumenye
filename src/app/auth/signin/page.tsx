@@ -15,11 +15,36 @@ export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    // Basic validation
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      setLoading(false);
+      return;
+    }
+
+    if (!validateEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Please enter your password');
+      setLoading(false);
+      return;
+    }
 
     try {
       const result = await signIn('credentials', {
@@ -48,10 +73,26 @@ export default function SignIn() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+
+    // Real-time validation
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
+
+    // Clear general error when user starts typing
+    if (error) {
+      setError('');
+    }
   };
 
   return (
@@ -88,9 +129,16 @@ export default function SignIn() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-3 border-2 border-gray-300 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue transition-colors"
+                className={`mt-1 block w-full px-4 py-3 border-2 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none transition-colors ${
+                  emailError 
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue'
+                }`}
                 placeholder="Enter your email"
               />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-600">{emailError}</p>
+              )}
             </div>
 
             <div>

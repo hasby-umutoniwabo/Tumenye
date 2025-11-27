@@ -103,11 +103,11 @@ export default function AllUsersPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black h-4 w-4" />
                 <input
                   type="text"
                   placeholder="Search users by name or email..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tumenye-blue focus:border-transparent"
+                  className="w-full text-black pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tumenye-blue focus:border-transparent"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -115,7 +115,7 @@ export default function AllUsersPage() {
             </div>
             <div className="sm:w-48">
               <select
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tumenye-blue focus:border-transparent"
+                className="w-full text-black px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-tumenye-blue focus:border-transparent"
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
               >
@@ -199,7 +199,7 @@ export default function AllUsersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button 
-                        className="text-tumenye-blue hover:text-blue-700 cursor-pointer hover:underline font-semibold mr-4 px-3 py-1 rounded-md hover:bg-blue-50 transition-all"
+                        className="text-blue-500 hover:text-blue-700 cursor-pointer hover:underline font-semibold mr-4 px-3 py-1 rounded-md hover:bg-blue-50 transition-all"
                         onClick={() => router.push(`/admin/users/${user._id}`)}
                       >
                         View Details →

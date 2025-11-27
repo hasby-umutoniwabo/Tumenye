@@ -17,6 +17,13 @@ export default function SignUp() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,14 +31,38 @@ export default function SignUp() {
     setError('');
 
     // Basic validation
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    if (!formData.name.trim()) {
+      setError('Please enter your full name');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.email.trim()) {
+      setError('Please enter your email address');
+      setLoading(false);
+      return;
+    }
+
+    if (!validateEmail(formData.email)) {
+      setError('Please enter a valid email address');
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.password) {
+      setError('Please enter a password');
       setLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
       setError('Password must be at least 6 characters long');
+      setLoading(false);
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
       setLoading(false);
       return;
     }
@@ -64,10 +95,37 @@ export default function SignUp() {
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+
+    // Real-time validation
+    if (name === 'email') {
+      if (value && !validateEmail(value)) {
+        setEmailError('Please enter a valid email address');
+      } else {
+        setEmailError('');
+      }
+    }
+
+    if (name === 'password') {
+      if (value && value.length < 6) {
+        setPasswordError('Password must be at least 6 characters long');
+      } else {
+        setPasswordError('');
+      }
+    }
+
+    if (name === 'confirmPassword') {
+      if (value && value !== formData.password) {
+        setPasswordError('Passwords do not match');
+      } else if (formData.password && formData.password.length >= 6) {
+        setPasswordError('');
+      }
+    }
   };
 
   return (
@@ -120,9 +178,16 @@ export default function SignUp() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-4 py-3 border-2 border-gray-300 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue transition-colors"
+                className={`mt-1 block w-full px-4 py-3 border-2 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none transition-colors ${
+                  emailError 
+                    ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                    : 'border-gray-300 focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue'
+                }`}
                 placeholder="Enter your email"
               />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-600">{emailError}</p>
+              )}
             </div>
 
             <div>
@@ -137,7 +202,11 @@ export default function SignUp() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="block w-full px-4 py-3 pr-12 border-2 border-gray-300 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue transition-colors"
+                  className={`block w-full px-4 py-3 pr-12 border-2 rounded-lg shadow-sm placeholder-gray-500 text-gray-900 bg-white focus:outline-none transition-colors ${
+                    passwordError 
+                      ? 'border-red-500 focus:ring-2 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-2 focus:ring-tumenye-blue focus:border-tumenye-blue'
+                  }`}
                   placeholder="Create a password"
                 />
                 <button
@@ -152,6 +221,9 @@ export default function SignUp() {
                   )}
                 </button>
               </div>
+              {passwordError && (
+                <p className="mt-1 text-sm text-red-600">{passwordError}</p>
+              )}
             </div>
 
             <div>

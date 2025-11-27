@@ -3,6 +3,11 @@ import bcrypt from 'bcryptjs';
 import connectDB from '@/lib/mongodb';
 import User from '@/models/User';
 
+const validateEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 export async function POST(request: NextRequest) {
   try {
     const { name, email, password } = await request.json();
@@ -11,6 +16,27 @@ export async function POST(request: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    if (!name.trim()) {
+      return NextResponse.json(
+        { error: 'Please enter a valid name' },
+        { status: 400 }
+      );
+    }
+
+    if (!email.trim()) {
+      return NextResponse.json(
+        { error: 'Please enter an email address' },
+        { status: 400 }
+      );
+    }
+
+    if (!validateEmail(email)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
         { status: 400 }
       );
     }
