@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { BookOpen, User, LogOut, Home, BarChart3 } from 'lucide-react';
+import { BookOpen, User, LogOut, Home, BarChart3, Shield } from 'lucide-react';
 
 export default function Navigation() {
   const { data: session } = useSession();
@@ -70,6 +70,16 @@ export default function Navigation() {
                   <BarChart3 className="h-4 w-4" />
                   <span>Dashboard</span>
                 </Link>
+
+                {session.user.role === 'admin' && (
+                  <Link 
+                    href="/admin"
+                    className="flex items-center space-x-1 text-gray-700 hover:text-tumenye-blue transition-colors"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span>Admin</span>
+                  </Link>
+                )}
 
                 <div className="flex items-center space-x-3">
                   <div className="flex items-center space-x-2">

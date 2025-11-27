@@ -53,19 +53,39 @@ export default function Home() {
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link 
-                  href="/modules"
-                  className="bg-white text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
-                >
-                  Continue Learning
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Link>
-                <Link 
-                  href="/dashboard"
-                  className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-black transition-colors"
-                >
-                  View Progress
-                </Link>
+                {session.user.role === 'admin' ? (
+                  <>
+                    <Link 
+                      href="/admin"
+                      className="bg-white text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
+                    >
+                      Admin Dashboard
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                    <Link 
+                      href="/admin/users"
+                      className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-black transition-colors"
+                    >
+                      Manage Users
+                    </Link>
+                  </>
+                ) : (
+                  <>
+                    <Link 
+                      href="/modules"
+                      className="bg-white text-black px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-flex items-center justify-center"
+                    >
+                      Continue Learning
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Link>
+                    <Link 
+                      href="/dashboard"
+                      className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold text-lg hover:bg-white hover:text-black transition-colors"
+                    >
+                      View Progress
+                    </Link>
+                  </>
+                )}
               </div>
             )}
           </div>
