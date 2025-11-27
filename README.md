@@ -6,6 +6,16 @@ A comprehensive digital literacy learning platform designed specifically for Rwa
 
 Our mission is to bridge the digital divide and prepare Rwanda's youth for a technology-driven future through accessible, high-quality digital literacy education.
 
+## 🌐 Live Demo
+
+**🚀 [View Live Application](https://tumenye-aoco.vercel.app/)**
+
+Experience Tumenye in action! The live demo includes:
+- Full learning platform with interactive modules
+- Admin dashboard for user management
+- Progress tracking and achievement system
+- Mobile-responsive design
+
 ## ✨ Features
 
 ### Core Learning Modules
