@@ -418,7 +418,14 @@ This project is part of a Tech for Good initiative. Contributions are welcome to
 
 This project is created for educational purposes and social impact in Rwanda.
 
-## 🙏 Acknowledgments
+## � Documentation
+
+### Software Requirements Specification (SRS)
+- **SRS Document**: [View Complete SRS](https://docs.google.com/document/d/1AfxA-Wv42jKdis8PhQ3jETAi5PaWSbGvofpS_UO5EwA/edit?usp=sharing)
+- Contains detailed functional requirements, system architecture, and technical specifications
+- Includes user stories, acceptance criteria, and system design documentation
+
+## �🙏 Acknowledgments
 
 - Built for Rwandan youth and digital empowerment
 - Inspired by the vision of technology for social good
